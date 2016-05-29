@@ -1,0 +1,164 @@
+# Other important points
+
+ - Name required for all `ui:...` elements (checked on `load()`)
+ - Root element must be `ui:form` (checked on `load()`)
+ - Every element must have a name except `ui:messages`
+ - The form object is automagically detected and if the `action` or `method` attribute is missing it is automagically inserted; default values: for `action` = the current script and for `method` = HTTP POST
+
+
+# Validation function
+
+normal text fields: function(value)
+single select: function(value, index) [Might get called with NULL, -1 for empty active]
+multi select: function(values[], indices)
+
+
+# Error message handling
+...
+
+
+
+## Component `ui:multiSelect`
+
+__Description:__ Provides a component to do multi selection. Either a select element with multiselect enabled is provided or checkboxes with labels
+
+__Attributes:__
+
+ - `bind` -- Data binding for this element. The data displayed in this control comes from an array previously registered through `registerDataBinding(name, value)`. The `name` is to place in this attribute.
+ - `style` -- Determines if a select field is generated or check boxes. The value `check` causes the class to render check boxes. Any other value or if this attribute is not present the rendered element is a select input.
+ - `required` -- Determines if this field is required. If the filed is required (this attribute set) then at least one option must be selected.
+ - `validator` -- PHP Function name to validate the input; for complex conditions (see "[Validation function](#validation-function)").
+ - `message` -- The error message which is generated (see "[Error message handling](#error-message-handling)") in case the validation for this field failed.
+
+__Example:__
+
+	<ui:multiSelect name="multi" bind="eat" />
+
+	<!-- Result: -->
+	<select name="multi[]" multiple>
+		<option value="0">Apple ][</option>
+		<option value="1">Apple ][ c</option>
+		<option value="2">Apple ][ c+</option>
+		<option value="3">Apple ][ e</option>
+		<option value="4">Apple III</option>
+	</select>
+
+
+## Component `ui:singleSelect`
+
+__Description:__ Provides a single selection form input. This input is either constructed from radio boxes or from a HTML select field.
+
+__Required attributes:__ `bind`, `name` 
+
+__Attributes:__
+
+ - `bind` -- Data binding for this element. The data displayed in this control comes from an array previously registered through `registerDataBinding(name, value)`. The `name` is to place in this attribute.
+ - `style` -- Determines if a select field is generated or radio boxes. The value `radio` causes the class to render radio boxes. Any other value or if this attribute is not present the rendered element is a select input.
+ - `empty` -- Enables the generation of an empty option at the first row. The contents can be the label or the language reference via `:key` syntax where `key` identifies the language string.
+ - `required` -- Determines if this field is required. If the filed is required (this attribute set) then one option must be choosen to succeed. The empty option counts as nothing selected.
+ - `validator` -- PHP Function name to validate the input; for complex conditions (see "[Validation function](#validation-function)").
+ - `message` -- The error message which is generated (see "[Error message handling](#error-message-handling)") in case the validation for this field failed.
+
+__Notes:__ On radio button mode the id field is ignored and overwritten by a generated value. Also the text is wrapped by labels for this mode.
+
+__Example:__
+	
+	<ui:singleSelect name="option" bind="eat" />
+
+	<!-- Result: -->
+	<select name="option">
+		<option value="0">Apple ][</option>
+		<option value="1" selected>Apple ][ c</option>
+		<option value="2">Apple ][ c+</option>
+		<option value="3">Apple ][ e</option>
+		<option value="4">Apple III</option>
+	</select>
+
+
+## Component `ui:messages`
+
+__Description:__ Outputs the validation messages inside an unordered list.
+
+__Attributes:__
+
+ - `errorClass` -- CSS class to add to every list item element.
+
+__Example:__
+
+	<ui:messages errorClass="foo-bar" />
+
+	<!-- Result: -->
+	<p class="form-messages"><ul>
+	<li class="foo-bar">Field "mail" requires at least 5 characters.</li>
+	</ul></p>
+
+
+
+## Component `ui:submit`
+
+__Description:__ Generates a submit button for the form.
+
+__Attributes:__ _none_
+
+__Example:__
+
+	<ui:submit name="my_submit" class="btn" value="Perform action" />
+
+	<!-- Result: -->
+	<input type="submit" name="my_submit" class="btn" value="Perform action" />
+
+
+## Components `ui:text`, `ui:textArea` and `ui:secret`
+
+__Description:__ Represents a text input field, area or secret (password) input field.
+
+__Attributes:__
+
+ - `required` -- Determines if the field is required to be filled (other condition bellow or at least one character). If not given the conditions `validator` and `minlength` are ignored. The value is indifferent.
+ - `validator` -- PHP Function name to validate the input; for complex conditions (see "[Validation function](#validation-function)"). If this attribute is given `number` and `minlength` are ignored.
+ - `number` -- If set the input will only be valid if the user input for this field is an integer number. If this attribute is set `minlength` is ignored.
+ - `minlength` -- The field value is only accepted if at least this number of characters are given. If this attribute is set `number` is ignored.
+ - `message` -- The error message which is generated (see "[Error message handling](#error-message-handling)") in case the validation for this field failed. Is enforced also if `required` is not set but content send
+
+__Example:__
+
+	<ui:text validator="email_input" message="Please enter a valid mail address." name="mail" id="inputEmail" class="form-control" required="true" />
+
+	<!-- Result: -->
+	<input type="text" name="mail" id="inputEmail" class="form-control" />
+
+## Component `ui:label`
+
+__Description:__ Simple label component to lookup a string in a language array for internationalization. In order to work properly the language function named `lang` must be available. `lang` takes a key as an argument and returns the value for this key.
+
+__Attributes:__
+
+ - `key` -- The key of the language value to insert.
+ - `plain` -- If set the output will be the plain language string. If not set the output language string is wrapped in a HTML label element.
+
+__Example:__
+
+	<ui:label key="msg.welcome" class="welt" />
+
+	<!-- Result: -->
+	<label class="welt">Willkommen!</label>
+
+# Example
+
+	$f = Formlet::create('example.xml');
+
+	$f->registerDataBinding('eat', array("Apple ][", "Apple ][ c", "Apple ][ c+", "Apple ][ e", "Apple III"));
+
+	$html = $f->toHTML();
+
+	echo $html;
+	echo "<hr/><pre>";
+	echo str_replace(array("<", ">"), array("&lt;", "&gt;"), $html);
+	echo "</pre><hr/>";
+
+	function mulival($value, $index) {
+		echo "VALIDATE: ", var_dump($value), "@", var_dump($index);
+		return count($index) > 2;
+	}
+
+

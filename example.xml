@@ -1,0 +1,17 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<ui:form xmlns:ui="com.facelet.app">
+
+  <ui:messages errorClass="foo-bar" />
+
+  <form class="form-signin">
+    <!--Eingabe: <ui:text required="true" minlength="5" name="mail" id="inputEmail" class="form-control" /> -->
+
+
+    Auswahl:
+    <ui:multiSelect name="multi" validator="mulival" message=":Welt" required="true" bind="eat" style="check" />
+
+    <ui:submit name="my_submit" class="btn" value="Perform action" />
+
+  </form>
+
+</ui:form>
