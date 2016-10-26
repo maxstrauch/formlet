@@ -759,10 +759,24 @@ class Formlet {
 				unset($attrMap['minlength']);
 
 				// Overlay the submitted form value
-				$value = $this->_get($attrMap['name']);
-				if (($value == "0" || $value != NULL) && 
-						array_key_exists('name', $attrMap)) {
-					$attrMap['value'] = htmlspecialchars($value);
+				if (isset($attrMap['valuemap'])) {
+					// The REQUEST parameters needed are encoded in an array;
+					// therefore also an index is needed to get the right
+					// value
+					$value = $this->_get(str_replace("[]", "", $attrMap['name']), true);
+					
+					$value = $value[(int) $attrMap['valuemap']];
+					if (strlen($value) > 0) {
+						$attrMap['value'] = htmlspecialchars($value);
+					}
+					unset($attrMap['valuemap']);
+				} else {
+					// Normal behaviour
+					$value = $this->_get($attrMap['name']);
+					if (($value == "0" || $value != NULL) && 
+							array_key_exists('name', $attrMap)) {
+						$attrMap['value'] = htmlspecialchars($value);
+					}
 				}
 
 				// Generate input HTML
@@ -983,10 +997,12 @@ class Formlet {
 	 * Fetches a parameter from the HTTP request
 	 *
 	 * @param $key The key of the value for the request parameters
+	 * @param $returnArray Determines if the raw REQUEST array value
+	 * should be returned or not
 	 * @return Returns either a string from the request parameters
 	 * or an array of integers (for single-/multi-select)
 	 */
-	function _get($key) { //: mixed
+	function _get($key, $returnArray = false) { //: mixed
 		// Overlay predefined values only if not submitted
 		if (!$this->isSubmitted()) {
 			if (isset($this->predefValues[$key])) {
@@ -996,6 +1012,10 @@ class Formlet {
 
 		if (!isset($_REQUEST[$key])) {
 			return NULL;
+		}
+
+		if ($returnArray && is_array($_REQUEST[$key])) {
+			return $_REQUEST[$key];
 		}
 
 		if (is_array($_REQUEST[$key])) {
